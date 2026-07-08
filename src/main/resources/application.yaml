@@ -16,3 +16,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+    secret: ThisIsAHirePilotAISecretKeyForJwtGeneration2026SecureKey
+    expiration: 3600000
