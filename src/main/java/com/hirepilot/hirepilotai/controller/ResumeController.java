@@ -1,5 +1,6 @@
 package com.hirepilot.hirepilotai.controller;
 
+import com.hirepilot.hirepilotai.dto.response.ResumeResponse;
 import com.hirepilot.hirepilotai.entity.User;
 import com.hirepilot.hirepilotai.service.ResumeService;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/v1/resumes")
@@ -26,5 +30,19 @@ public class ResumeController {
         User user = (User) authentication.getPrincipal();
         resumeService.uploadResume(resumeTitle, file, user);
         return ResponseEntity.ok("Resume uploaded successfully.");
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ResumeResponse>> getMyResumes(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return ResponseEntity.ok(resumeService.getMyResumes(user));
+    }
+
+    @PatchMapping("/{resumeId}/activate")
+    public ResponseEntity<String> activateResume(@PathVariable Long resumeId,
+                                                 Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        resumeService.activateResume(resumeId, user);
+        return ResponseEntity.ok("Resume activated successfully.");
     }
 }

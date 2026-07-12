@@ -2,7 +2,9 @@ package com.hirepilot.hirepilotai.service;
 
 import com.hirepilot.hirepilotai.entity.Resume;
 import com.hirepilot.hirepilotai.entity.User;
+import com.hirepilot.hirepilotai.exception.ResumeNotFoundException;
 import com.hirepilot.hirepilotai.repository.ResumeRepository;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
+import com.hirepilot.hirepilotai.dto.response.ResumeResponse;
+
 @Service
 public class ResumeService {
 
@@ -27,10 +31,6 @@ public class ResumeService {
 
     public ResumeService(ResumeRepository resumeRepository) {
         this.resumeRepository = resumeRepository;
-    }
-
-    public List<Resume> getResumesByUser(User user) {
-        return resumeRepository.findByUser(user);
     }
 
     public void uploadResume(String resumeTitle, MultipartFile file, User user) throws IOException {
@@ -85,4 +85,32 @@ public class ResumeService {
         resume.setActive(false);
         resumeRepository.save(resume);
     }
+
+    public List<ResumeResponse> getMyResumes(User user) {
+        List<Resume> resumes = resumeRepository.findByUserOrderByActiveDescUploadedAtDesc(user);
+        return resumes.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    private ResumeResponse mapToResponse(Resume resume) {
+        ResumeResponse response = new ResumeResponse();
+        response.setId(resume.getId());
+        response.setResumeTitle(resume.getResumeTitle());
+        response.setActive(resume.isActive());
+        response.setUploadedAt(resume.getUploadedAt());
+        return response;
+    }
+
+    @Transactional
+    public void activateResume(Long resumeId, User user) {
+        resumeRepository.deactivateAllByUser(user);
+        Resume resume = resumeRepository
+                .findByIdAndUser(resumeId, user)
+                .orElseThrow(() -> new ResumeNotFoundException("Resume not found."));
+
+        resume.setActive(true);
+        resumeRepository.save(resume);
+    }
+
 }
