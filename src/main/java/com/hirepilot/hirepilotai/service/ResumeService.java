@@ -2,6 +2,7 @@ package com.hirepilot.hirepilotai.service;
 
 import com.hirepilot.hirepilotai.entity.Resume;
 import com.hirepilot.hirepilotai.entity.User;
+import com.hirepilot.hirepilotai.exception.ActiveResumeDeletionException;
 import com.hirepilot.hirepilotai.exception.ResumeNotFoundException;
 import com.hirepilot.hirepilotai.repository.ResumeRepository;
 import jakarta.transaction.Transactional;
@@ -111,6 +112,23 @@ public class ResumeService {
 
         resume.setActive(true);
         resumeRepository.save(resume);
+    }
+
+    @Transactional
+    public void deleteResume(Long resumeId, User user) throws IOException {
+        Resume resume = resumeRepository
+                .findByIdAndUser(resumeId, user)
+                .orElseThrow(() -> new ResumeNotFoundException("Resume not found.")); // Step 1 - Find resume
+
+        if (resume.isActive()) {
+            throw new ActiveResumeDeletionException("Please activate another resume before deleting the active resume."); // Step 2 - Check if active
+        }
+
+        Files.deleteIfExists(Paths.get(resume.getFilePath())); // Step 3 - Delete PDF
+
+        resumeRepository.delete(resume); // Step 4 - Delete DB record
+
+        logger.info("Resume '{}' deleted successfully for user '{}'", resume.getResumeTitle(), user.getEmail()); // Step 5 - Log success
     }
 
 }

@@ -24,9 +24,7 @@ public class ResumeController {
     }
 
     @PostMapping
-    public ResponseEntity<String> uploadResume(@RequestParam("resumeTitle") String resumeTitle,
-                                               @RequestParam("file") MultipartFile file,
-                                               Authentication authentication) throws IOException {
+    public ResponseEntity<String> uploadResume(@RequestParam("resumeTitle") String resumeTitle, @RequestParam("file") MultipartFile file, Authentication authentication) throws IOException {
         User user = (User) authentication.getPrincipal();
         resumeService.uploadResume(resumeTitle, file, user);
         return ResponseEntity.ok("Resume uploaded successfully.");
@@ -39,10 +37,16 @@ public class ResumeController {
     }
 
     @PatchMapping("/{resumeId}/activate")
-    public ResponseEntity<String> activateResume(@PathVariable Long resumeId,
-                                                 Authentication authentication) {
+    public ResponseEntity<String> activateResume(@PathVariable Long resumeId, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         resumeService.activateResume(resumeId, user);
         return ResponseEntity.ok("Resume activated successfully.");
+    }
+
+    @DeleteMapping("/{resumeId}")
+    public ResponseEntity<String> deleteResume(@PathVariable Long resumeId, Authentication authentication) throws IOException {
+        User user = (User) authentication.getPrincipal();
+        resumeService.deleteResume(resumeId, user);
+        return ResponseEntity.ok("Resume deleted successfully.");
     }
 }

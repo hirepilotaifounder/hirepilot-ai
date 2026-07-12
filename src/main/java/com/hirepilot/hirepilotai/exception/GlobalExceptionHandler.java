@@ -10,12 +10,21 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handleRuntimeException(RuntimeException ex) {
+    @ExceptionHandler(ResumeNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleResumeNotFound(ResumeNotFoundException ex) {
+        return Map.of("message", ex.getMessage());
+    }
 
-        return Map.of(
-                "message", ex.getMessage()
-        );
+    @ExceptionHandler(ActiveResumeDeletionException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handleActiveResumeDeletion(ActiveResumeDeletionException ex) {
+        return Map.of("message", ex.getMessage());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleRuntimeException(RuntimeException ex) {
+        return Map.of("message", ex.getMessage());
     }
 }
