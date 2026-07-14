@@ -1,5 +1,6 @@
 package com.hirepilot.hirepilotai.service;
 
+import com.hirepilot.hirepilotai.dto.response.ResumeDownloadResponse;
 import com.hirepilot.hirepilotai.entity.Resume;
 import com.hirepilot.hirepilotai.entity.User;
 import com.hirepilot.hirepilotai.exception.ActiveResumeDeletionException;
@@ -8,8 +9,11 @@ import com.hirepilot.hirepilotai.repository.ResumeRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
+import java.net.MalformedURLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
@@ -106,9 +110,8 @@ public class ResumeService {
     @Transactional
     public void activateResume(Long resumeId, User user) {
         resumeRepository.deactivateAllByUser(user);
-        Resume resume = resumeRepository
-                .findByIdAndUser(resumeId, user)
-                .orElseThrow(() -> new ResumeNotFoundException("Resume not found."));
+        Resume resume = resumeRepository.findByIdAndUser(resumeId, user)
+                                        .orElseThrow(() -> new ResumeNotFoundException("Resume not found."));
 
         resume.setActive(true);
         resumeRepository.save(resume);
@@ -129,6 +132,21 @@ public class ResumeService {
         resumeRepository.delete(resume); // Step 4 - Delete DB record
 
         logger.info("Resume '{}' deleted successfully for user '{}'", resume.getResumeTitle(), user.getEmail()); // Step 5 - Log success
+    }
+
+    public ResumeDownloadResponse downloadResume(Long resumeId, User user) throws MalformedURLException {
+        Resume resume = resumeRepository.findByIdAndUser(resumeId, user)
+                                        .orElseThrow(() -> new ResumeNotFoundException("Resume not found."));
+
+        Path path = Paths.get(resume.getFilePath());
+        Resource resource = new UrlResource(path.toUri());
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new ResumeNotFoundException("Resume file not found.");
+        }
+        ResumeDownloadResponse response = new ResumeDownloadResponse();
+        response.setResource(resource);
+        response.setOriginalFileName(resume.getOriginalFileName());
+        return response;
     }
 
 }

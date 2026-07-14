@@ -1,14 +1,19 @@
 package com.hirepilot.hirepilotai.controller;
 
+import com.hirepilot.hirepilotai.dto.response.ResumeDownloadResponse;
 import com.hirepilot.hirepilotai.dto.response.ResumeResponse;
 import com.hirepilot.hirepilotai.entity.User;
 import com.hirepilot.hirepilotai.service.ResumeService;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,5 +53,17 @@ public class ResumeController {
         User user = (User) authentication.getPrincipal();
         resumeService.deleteResume(resumeId, user);
         return ResponseEntity.ok("Resume deleted successfully.");
+    }
+
+    @GetMapping("/{resumeId}/download")
+    public ResponseEntity<Resource> downloadResume(@PathVariable Long resumeId, Authentication authentication) throws IOException {
+        User user = (User) authentication.getPrincipal();
+        ResumeDownloadResponse response = resumeService.downloadResume(resumeId, user);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(response.getResource().contentLength())
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + response.getOriginalFileName() + "\"")
+                .body(response.getResource());
     }
 }
