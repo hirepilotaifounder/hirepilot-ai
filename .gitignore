@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Maven build output
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Runtime uploaded resumes
+uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
