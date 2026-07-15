@@ -1,4 +1,4 @@
-package com.hirepilot.hirepilotai.dto;
+package com.hirepilot.hirepilotai.dto.parser;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ public class ResumeParsedData {
 
     private String email;
 
-    private String mobile;
+    private List<String> mobileNumbers;
 
     private List<String> skills;
 
@@ -42,12 +42,12 @@ public class ResumeParsedData {
         this.email = email;
     }
 
-    public String getMobile() {
-        return mobile;
+    public List<String> getMobileNumbers() {
+        return mobileNumbers;
     }
 
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
+    public void setMobileNumbers(List<String> mobileNumbers) {
+        this.mobileNumbers = mobileNumbers;
     }
 
     public List<String> getSkills() {
