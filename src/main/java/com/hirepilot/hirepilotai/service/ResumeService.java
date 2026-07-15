@@ -1,5 +1,6 @@
 package com.hirepilot.hirepilotai.service;
 
+import com.hirepilot.hirepilotai.dto.parser.ResumeParsedData;
 import com.hirepilot.hirepilotai.dto.response.ResumeDownloadResponse;
 import com.hirepilot.hirepilotai.entity.Resume;
 import com.hirepilot.hirepilotai.entity.User;
@@ -33,9 +34,11 @@ public class ResumeService {
     private static final Logger logger = LoggerFactory.getLogger(ResumeService.class);
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
+    private ResumeParserService resumeParserService;
 
-    public ResumeService(ResumeRepository resumeRepository) {
+    public ResumeService(ResumeRepository resumeRepository, ResumeParserService resumeParserService) {
         this.resumeRepository = resumeRepository;
+        this.resumeParserService = resumeParserService;
     }
 
     public void uploadResume(String resumeTitle, MultipartFile file, User user) throws IOException {
@@ -51,6 +54,7 @@ public class ResumeService {
             Files.deleteIfExists(destination);
             throw e;
         }
+        ResumeParsedData parsedData = resumeParserService.parseResume(file);
     }
 
     private void validateFile(MultipartFile file) {
