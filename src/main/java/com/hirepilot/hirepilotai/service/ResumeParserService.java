@@ -15,6 +15,8 @@ import org.apache.pdfbox.text.PDFTextStripper;
 @Service
 public class ResumeParserService {
 
+    private static final Set<String> IGNORED_HEADINGS = Set.of("RESUME", "CURRICULUM VITAE", "CV");
+
     public ResumeParsedData parseResume(MultipartFile file) throws IOException {
         ResumeParsedData parsedData = new ResumeParsedData();
         try (PDDocument document = Loader.loadPDF(file.getBytes())) {
@@ -23,6 +25,7 @@ public class ResumeParserService {
             parsedData.setExtractedText(extractedText);
             parsedData.setEmail(extractEmail(extractedText));
             parsedData.setMobileNumbers(extractMobileNumbers(extractedText));
+            parsedData.setName(extractName(extractedText));
         }
         return parsedData;
     }
@@ -52,6 +55,28 @@ public class ResumeParserService {
     private boolean isValidPhoneCandidate(String mobile) {
         String digits = mobile.replaceAll("\\D", "");
         return digits.length() >= 10;
+    }
+
+    private String extractName(String text) {
+        String[] lines = text.split("\\R");
+        for (String line : lines) {
+            String candidate = line.trim();
+            if (candidate.isEmpty()) {
+                continue;
+            }
+            if (isSeparator(candidate)) {
+                continue;
+            }
+            if (IGNORED_HEADINGS.contains(candidate.toUpperCase())) {
+                continue;
+            }
+            return candidate;
+        }
+        return null;
+    }
+
+    private boolean isSeparator(String line) {
+        return line.matches("^[\\-=*_~.#|+]{3,}$");
     }
 
 }
